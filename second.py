@@ -16,17 +16,29 @@ class Variable:
     self.data = data
     self.grad = None  # その変数をxとして、全体の出力をyとして、dy/dxが変数ごとに入る
     self.creator = None
+    self.generation = 0
 
   def set_creator(self, func):
     self.creator = func
+    self.generation = func.generation + 1
 
   def backward(self):
     if self.grad is None:
       self.grad = np.ones_like(self.data)
 
-    funcs = [self.creator]
+    funcs = []
+    seen_set = set()
+
+    def add_func(f):
+      if f not in seen_set:
+        seen_set.add(f)
+        funcs.append(f)
+        funcs.sort(key=lambda x: x.generation)
+
+    add_func(self.creator)
     while funcs:
-      f = funcs.pop()  # 今わかっていないnodeのgradを入力として、既知のgradのnodeを出力する関数を取得
+      # 今わかっていないnodeのgradを入力として、既知のgradのnodeを出力する関数を取得
+      f = funcs.pop()
       gys = [output.grad for output in f.outputs]  # 関数の出力を取得
       # このbackward methodでは、dw/dxを計算して、dy/dwと掛け合わせることでdy/dxを計算してる(関数への入力がややこしいけど)
       gxs = f.backward(*gys)
@@ -38,7 +50,7 @@ class Variable:
         else:
           x.grad = x.grad + gx
         if x.creator is not None:
-          funcs.append(x.creator)  # 一つ前の関数をリストに追加する
+          add_func(x.creator)  # 一つ前の関数をリストに追加する
 
   def cleargrad(self):
     self.grad = None
@@ -51,6 +63,8 @@ class Function:
     if not isinstance(ys, tuple):
       ys = (ys,)
     outputs = [Variable(as_array(y)) for y in ys]
+
+    self.generation = max([x.generation for x in inputs])
     for output in outputs:
       output.set_creator(self)
     self.inputs = inputs
@@ -115,12 +129,9 @@ def add(x0, x1):
   return Add()(x0, x1)
 
 
-x = Variable(np.array(3.0))
-y = add(x, x)
+x = Variable(np.array(2.0))
+a = square(x)
+y = add(square(a), square(a))
 y.backward()
-print(x.grad)  # 2.0
-# 2回目の計算(同じxを使って、別の計算を行う)
-x.cleargrad()
-y = add(add(x, x), x)
-y.backward()
+print(y.data)
 print(x.grad)
