@@ -1,4 +1,5 @@
 import numpy as np
+import weakref
 
 
 def as_array(x):
@@ -22,7 +23,7 @@ class Variable:
     self.creator = func
     self.generation = func.generation + 1
 
-  def backward(self):
+  def backward(self, retain_grad=False):
     if self.grad is None:
       self.grad = np.ones_like(self.data)
 
@@ -39,7 +40,7 @@ class Variable:
     while funcs:
       # 今わかっていないnodeのgradを入力として、既知のgradのnodeを出力する関数を取得
       f = funcs.pop()
-      gys = [output.grad for output in f.outputs]  # 関数の出力を取得
+      gys = [output().grad for output in f.outputs]  # 関数の出力を取得
       # このbackward methodでは、dw/dxを計算して、dy/dwと掛け合わせることでdy/dxを計算してる(関数への入力がややこしいけど)
       gxs = f.backward(*gys)
       if not isinstance(gxs, tuple):
@@ -51,6 +52,9 @@ class Variable:
           x.grad = x.grad + gx
         if x.creator is not None:
           add_func(x.creator)  # 一つ前の関数をリストに追加する
+      if not retain_grad:
+        for y in f.outputs:
+          y().grad = None
 
   def cleargrad(self):
     self.grad = None
@@ -68,7 +72,7 @@ class Function:
     for output in outputs:
       output.set_creator(self)
     self.inputs = inputs
-    self.outputs = outputs
+    self.outputs = [weakref.ref(output) for output in outputs]
     # 要素が一つのときは要素を返し、それ以外の時はリストを返す
     return outputs if len(outputs) > 1 else outputs[0]
 
@@ -129,9 +133,10 @@ def add(x0, x1):
   return Add()(x0, x1)
 
 
-x = Variable(np.array(2.0))
-a = square(x)
-y = add(square(a), square(a))
+x0 = Variable(np.array(1.0))
+x1 = Variable(np.array(1.0))
+t = add(x0, x1)
+y = add(x0, t)
 y.backward()
-print(y.data)
-print(x.grad)
+print(y.grad, t.grad)
+print(x0.grad, x1.grad)
