@@ -28,12 +28,13 @@ def no_grad():
 
 
 class Variable:
-  def __init__(self, data):
+  def __init__(self, data, name=None):
     # ndarrayとNone以外は受け付けないようにする
     if data is not None:
       if not isinstance(data, np.ndarray):
         raise TypeError('{} is not supported'.format(type(data)))
     self.data = data
+    self.name = name
     self.grad = None  # その変数をxとして、全体の出力をyとして、dy/dxが変数ごとに入る
     self.creator = None
     self.generation = 0
@@ -77,6 +78,27 @@ class Variable:
 
   def cleargrad(self):
     self.grad = None
+
+  @property
+  def shape(self):
+    return self.data.shape
+
+  @property
+  def size(self):
+    return self.data.size
+
+  @property
+  def dtype(self):
+    return self.data.dtype
+
+  def __len__(self):
+    return len(self.data)
+
+  def __repr__(self):
+    if self.data is None:
+      return 'variable(None)'
+    p = str(self.data).replace('\n', '\n' + ' ' * 9)
+    return 'variable(' + p + ')'
 
 
 class Function:
@@ -152,6 +174,5 @@ def add(x0, x1):
   return Add()(x0, x1)
 
 
-with no_grad():
-  x = Variable(np.ones((100, 100, 100)))
-  y = square(square(square(x)))
+x = Variable(np.array([[1, 2, 3], [4, 5, 6]]))
+print(x)
