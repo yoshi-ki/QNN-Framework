@@ -143,6 +143,10 @@ class Square(Function):
     return gx
 
 
+def square(x):
+  return Square()(x)
+
+
 class Exp(Function):
   def forward(self, x):
     return np.exp(x)
@@ -153,6 +157,10 @@ class Exp(Function):
     return gx
 
 
+def exp(x):
+  return Exp()(x)
+
+
 class Add(Function):
   def forward(self, x0, x1):
     y = x0 + x1
@@ -160,6 +168,15 @@ class Add(Function):
 
   def backward(self, gy):
     return gy, gy
+
+
+def add(x0, x1):
+  x1 = as_array(x1)
+  return Add()(x0, x1)
+
+
+Variable.__add__ = add
+Variable.__radd__ = add
 
 
 class Mul(Function):
@@ -172,6 +189,52 @@ class Mul(Function):
     return gy * x1, gy * x0
 
 
+def mul(x0, x1):
+  x1 = as_array(x1)
+  return Mul()(x0, x1)
+
+
+Variable.__mul__ = mul
+Variable.__rmul__ = mul
+
+
+class Neg(Function):
+  def forward(self, x):
+    return - x
+
+  def backward(self, gy):
+    return -gy
+
+
+def neg(x):
+  return Neg()(x)
+
+
+Variable.__neg__ = neg
+
+
+class Sub(Function):
+  def forward(self, x0, x1):
+    return x0 - x1
+
+  def backward(self, gy):
+    return gy, -gy
+
+
+def sub(x0, x1):
+  x1 = as_array(x1)
+  return Sub()(x0, x1)
+
+
+def rsub(x0, x1):
+  x1 = as_array(x1)
+  return Sub()(x1, x0)
+
+
+Variable.__sub__ = sub
+Variable.__rsub__ = rsub
+
+
 def numerical_diff(f, x, eps=1e-4):
   # 中心差分での実装
   x0 = Variable(x.data - eps)
@@ -181,29 +244,8 @@ def numerical_diff(f, x, eps=1e-4):
   return (y1.data - y0.data) / (2 * eps)
 
 
-def square(x):
-  return Square()(x)
-
-
-def exp(x):
-  return Exp()(x)
-
-
-def add(x0, x1):
-  x1 = as_array(x1)
-  return Add()(x0, x1)
-
-
-def mul(x0, x1):
-  x1 = as_array(x1)
-  return Mul()(x0, x1)
-
-
-Variable.__add__ = add
-Variable.__radd__ = add
-Variable.__mul__ = mul
-Variable.__rmul__ = mul
-
-a = Variable(np.array(3.0))
-y = np.array([3.0]) * a + 1.0
-print(y)
+x = Variable(np.array(2.0))
+y1 = 2.0 - x
+y2 = x - 1.0
+print(y1)
+print(y2)
