@@ -261,6 +261,28 @@ Variable.__truediv__ = div
 Variable.__rtruediv__ = rdiv
 
 
+class Pow(Function):
+  def __init__(self, c):
+    self.c = c
+
+  def forward(self, x):
+    y = x ** self.c
+    return y
+
+  def backward(self, gy):
+    x = self.inputs[0].data
+    c = self.c
+    gx = c * x ** (c - 1) * gy
+    return gx
+
+
+def pow(x, c):
+  return Pow(c)(x)
+
+
+Variable.__pow__ = pow
+
+
 def numerical_diff(f, x, eps=1e-4):
   # 中心差分での実装
   x0 = Variable(x.data - eps)
@@ -271,7 +293,5 @@ def numerical_diff(f, x, eps=1e-4):
 
 
 x = Variable(np.array(2.0))
-y1 = 2.0 - x
-y2 = x - 1.0
-print(y1)
-print(y2)
+y = x ** 3
+print(y)
