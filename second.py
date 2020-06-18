@@ -9,6 +9,12 @@ def as_array(x):
   return x
 
 
+def as_variable(obj):
+  if isinstance(obj, Variable):
+    return obj
+  return Variable(obj)
+
+
 class Config:
   enable_backprop = True  # 逆伝播を可能にするかどうか
 
@@ -28,6 +34,8 @@ def no_grad():
 
 
 class Variable:
+  __array_priority__ = 200  # 演算子の優先度
+
   def __init__(self, data, name=None):
     # ndarrayとNone以外は受け付けないようにする
     if data is not None:
@@ -103,6 +111,7 @@ class Variable:
 
 class Function:
   def __call__(self, *inputs):
+    inputs = [as_variable(x) for x in inputs]
     xs = [x.data for x in inputs]
     ys = self.forward(*xs)
     if not isinstance(ys, tuple):
@@ -153,6 +162,16 @@ class Add(Function):
     return gy, gy
 
 
+class Mul(Function):
+  def forward(self, x0, x1):
+    y = x0 * x1
+    return y
+
+  def backward(self, gy):
+    x0, x1 = self.inputs[0].data, self.inputs[1].data
+    return gy * x1, gy * x0
+
+
 def numerical_diff(f, x, eps=1e-4):
   # 中心差分での実装
   x0 = Variable(x.data - eps)
@@ -171,8 +190,20 @@ def exp(x):
 
 
 def add(x0, x1):
+  x1 = as_array(x1)
   return Add()(x0, x1)
 
 
-x = Variable(np.array([[1, 2, 3], [4, 5, 6]]))
-print(x)
+def mul(x0, x1):
+  x1 = as_array(x1)
+  return Mul()(x0, x1)
+
+
+Variable.__add__ = add
+Variable.__radd__ = add
+Variable.__mul__ = mul
+Variable.__rmul__ = mul
+
+a = Variable(np.array(3.0))
+y = np.array([3.0]) * a + 1.0
+print(y)
