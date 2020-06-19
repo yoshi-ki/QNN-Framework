@@ -116,6 +116,13 @@ class Variable:
       shape = shape[0]
     return my_framework.functions.reshape(self, shape)
 
+  def transpose(self):
+    return my_framework.functions.transpose(self)
+
+  @property
+  def T(self):
+    return my_framework.functions.transpose(self)
+
 
 class Function:
   def __call__(self, *inputs):
