@@ -1,6 +1,7 @@
 import numpy as np
 import weakref
 import contextlib
+import my_framework
 
 
 def as_array(x):
@@ -109,6 +110,11 @@ class Variable:
       return 'variable(None)'
     p = str(self.data).replace('\n', '\n' + ' ' * 9)
     return 'variable(' + p + ')'
+
+  def reshape(self, *shape):
+    if(len(shape) == 1) and isinstance(shape[0], (tuple, list)):
+      shape = shape[0]
+    return my_framework.functions.reshape(self, shape)
 
 
 class Function:
