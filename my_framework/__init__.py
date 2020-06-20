@@ -16,4 +16,5 @@ else:
   from my_framework.core import as_array
   from my_framework.core import as_variable
   from my_framework.core import setup_variable
+  from my_framework.core import Parameter
 setup_variable()
