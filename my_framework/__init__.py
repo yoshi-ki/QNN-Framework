@@ -19,5 +19,6 @@ else:
   from my_framework.core import Parameter
   from my_framework.models import Model
   from my_framework.layers import Layer
+  from my_framework.optimizers import Optimizer
 
 setup_variable()
