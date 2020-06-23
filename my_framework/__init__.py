@@ -17,4 +17,7 @@ else:
   from my_framework.core import as_variable
   from my_framework.core import setup_variable
   from my_framework.core import Parameter
+  from my_framework.models import Model
+  from my_framework.layers import Layer
+
 setup_variable()
