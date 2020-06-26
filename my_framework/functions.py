@@ -308,7 +308,7 @@ def softmax(x, axis=1):
 
 
 def softmax_simple(x, axis=1):
-  #x = x - x.max(axis=axis, keepdims=True)
+  x = x - x.max(axis=axis, keepdims=True)
   #x = x
   x = as_variable(x)
   y = exp(x)
