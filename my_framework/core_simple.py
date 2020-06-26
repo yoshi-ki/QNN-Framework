@@ -272,3 +272,13 @@ def setup_variable():
   Variable.__truediv__ = div
   Variable.__rtruediv__ = rdiv
   Variable.__pow__ = pow
+
+
+if __name__ == '__main__':
+  setup_variable()
+  x = Variable(np.array(1.0))
+  y = (x + 3) ** 2
+  y.backward()
+
+  print(y)
+  print(x.grad)

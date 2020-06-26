@@ -16,7 +16,7 @@ class Dataset:
       return self.data[index], None
 
   def __len__(self):
-    return self.data
+    return len(self.data)
 
   def prepare(self):
     pass
