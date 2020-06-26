@@ -3,6 +3,7 @@ import numpy as np
 
 class Dataset:
   def __init__(self, train=True):
+    # 学習用とテスト用を区別するためのflag
     self.train = train
     self.data = None
     self.label = None
@@ -11,9 +12,10 @@ class Dataset:
   def __getitem__(self, index):
     assert np.isscalar(index)
     if self.label is None:
+      # 教師なし学習を想定した挙動
       return self.data[index], None
     else:
-      return self.data[index], None
+      return self.data[index], self.label[index]
 
   def __len__(self):
     return len(self.data)
