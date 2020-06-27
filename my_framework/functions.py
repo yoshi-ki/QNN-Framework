@@ -1,6 +1,6 @@
 import numpy as np
-from my_framework.core import Function
-from my_framework.core import as_variable
+from my_framework.core import Function, Variable
+from my_framework.core import as_variable, as_array
 from my_framework import utils
 
 
@@ -370,3 +370,20 @@ class Max(Function):
 
 def max(x, axis=None, keepdims=False):
   return Max(axis, keepdims)(x)
+
+
+def accuracy(y, t):
+  y, t = as_variable(y), as_variable(t)
+  pred = y.data.argmax(axis=1).reshape(t.shape)
+  result = (pred == t.data)
+  acc = result.mean()
+  return Variable(as_array(acc))
+
+
+# from my_framework.core import add
+# from my_framework.core import sub
+# from my_framework.core import rsub
+# from my_framework.core import mul
+# from my_framework.core import div
+# from my_framework.core import neg
+# from my_framework.core import pow
