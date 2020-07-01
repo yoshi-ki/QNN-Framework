@@ -241,17 +241,35 @@ def linear_simple(x, W, b=None):
 class Q_Linear(Function):
   def forward(self, x, W, b):
     # W = #quantize W
+    # binarize用
+    # y = x.dot(W)
+    # if b is not None:
+    #   y += b
+    # y = np.sign(y)
+    # quantize用
+    bit_size = 1
+    self.bit_size = bit_size
     y = x.dot(W)
+    W = np.round(W)
+    W = np.clip(W, - 2 ** (bit_size - 1), 2 ** (bit_size - 1) - 1)
     if b is not None:
       y += b
-    # y = #quantize y
+    y = np.round(y)
+    y = np.clip(y, - 2 ** (bit_size - 1), 2 ** (bit_size - 1) - 1)
     return y
 
   def backward(self, gy):
     x, W, b = self.inputs
+    # quantizeの効果をここでbackwardする
+    mask = ((x.dot(W)).data >= - 2 ** (self.bit_size - 1)) * \
+        ((x.dot(W)).data <= 2 ** (self.bit_size - 1) - 1)
+    gy = gy * mask
     gb = None if b.data is None else sum_to(gy, b.shape)
     gx = matmul(gy, W.T)
     gW = matmul(x.T, gy)
+    mask = (W.data >= - 2 ** (self.bit_size - 1)) * \
+        (W.data <= 2 ** (self.bit_size - 1) - 1)
+    gW = gW * mask
     return gx, gW, gb
 
 
@@ -333,7 +351,7 @@ def softmax(x, axis=1):
 
 def softmax_simple(x, axis=1):
   x = x - x.max(axis=axis, keepdims=True)
-  #x = x
+  # x = x
   x = as_variable(x)
   y = exp(x)
   sum_y = sum(y, axis=axis, keepdims=True)
@@ -392,8 +410,18 @@ class Max(Function):
     return gy * cond
 
 
+class Min(Max):
+  def forward(self, x):
+    y = x.min(axis=self.axis, keepdims=self.keepdims)
+    return y
+
+
 def max(x, axis=None, keepdims=False):
   return Max(axis, keepdims)(x)
+
+
+def min(x, axis=None, keepdims=False):
+  return Min(axis, keepdims)(x)
 
 
 def accuracy(y, t):

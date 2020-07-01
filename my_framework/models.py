@@ -43,7 +43,7 @@ class Q_MLP(Model):
         layer = L.Linear(out_size)
       else:
         # 入力を受け取って、計算を行ってquantizeを行う
-        layer = L.Q_linear(out_size)
+        layer = L.Q_Linear(out_size)
       setattr(self, 'l' + str(i), layer)
       self.layers.append(layer)
 

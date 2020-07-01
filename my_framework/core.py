@@ -291,6 +291,7 @@ def setup_variable():
   Variable.matmaul = my_framework.functions.matmul
   Variable.dot = my_framework.functions.matmul
   Variable.max = my_framework.functions.max
+  Variable.min = my_framework.functions.min
 
 
 if __name__ == '__main__':
