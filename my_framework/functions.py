@@ -246,30 +246,60 @@ class Q_Linear(Function):
     # if b is not None:
     #   y += b
     # y = np.sign(y)
-    # quantize用
-    bit_size = 1
+
+    # quantize用(ナイーブ)
+    # bit_size = 1
+    # self.bit_size = bit_size
+    # y = x.dot(W)
+    # W = np.round(W)
+    # W = np.clip(W, - 2 ** (bit_size - 1), 2 ** (bit_size - 1) - 1)
+    # if b is not None:
+    #   y += b
+    # y = np.round(y)
+    # y = np.clip(y, - 2 ** (bit_size - 1), 2 ** (bit_size - 1) - 1)
+
+    # quantize用(論文実装)
+    bit_size = 2
     self.bit_size = bit_size
-    y = x.dot(W)
-    W = np.round(W)
+    W_max = (W * np.sign(W)).max(axis=None, keepdims=True)
+    self.W_max = W_max
+    W = np.round(W * (2 ** (bit_size - 1)) / W_max)
+    self.W_result = W
     W = np.clip(W, - 2 ** (bit_size - 1), 2 ** (bit_size - 1) - 1)
-    if b is not None:
-      y += b
-    y = np.round(y)
+    y = x.dot(W)
+    y_max = (y * np.sign(y)).max(axis=None, keepdims=True)
+    self.y_max = y_max
+    y = np.round(y * (2 ** (bit_size - 1)) / y_max)
+    self.y_result = y
     y = np.clip(y, - 2 ** (bit_size - 1), 2 ** (bit_size - 1) - 1)
+
     return y
 
   def backward(self, gy):
     x, W, b = self.inputs
+    mask = (self.y_result >= - 2 ** (self.bit_size - 1)) * \
+        (self.y_result <= 2 ** (self.bit_size - 1) - 1)
+    gy = gy * mask * self.y_max
     # quantizeの効果をここでbackwardする
-    mask = ((x.dot(W)).data >= - 2 ** (self.bit_size - 1)) * \
-        ((x.dot(W)).data <= 2 ** (self.bit_size - 1) - 1)
-    gy = gy * mask
     gb = None if b.data is None else sum_to(gy, b.shape)
     gx = matmul(gy, W.T)
     gW = matmul(x.T, gy)
-    mask = (W.data >= - 2 ** (self.bit_size - 1)) * \
-        (W.data <= 2 ** (self.bit_size - 1) - 1)
-    gW = gW * mask
+    mask = (self.W_result >= - 2 ** (self.bit_size - 1)) * \
+        (self.W_result <= 2 ** (self.bit_size - 1) - 1)
+    gW = gW * mask * self.W_max
+
+    # quantize(ナイーブ)
+    # x, W, b = self.inputs
+    # # quantizeの効果をここでbackwardする
+    # mask = ((x.dot(W)).data >= - 2 ** (self.bit_size - 1)) * \
+    #     ((x.dot(W)).data <= 2 ** (self.bit_size - 1) - 1)
+    # gy = gy * mask
+    # gb = None if b.data is None else sum_to(gy, b.shape)
+    # gx = matmul(gy, W.T)
+    # gW = matmul(x.T, gy)
+    # mask = (W.data >= - 2 ** (self.bit_size - 1)) * \
+    #     (W.data <= 2 ** (self.bit_size - 1) - 1)
+    # gW = gW * mask
     return gx, gW, gb
 
 
