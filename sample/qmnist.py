@@ -29,7 +29,7 @@ train_loader = DataLoader(train_set, batch_size)
 test_loader = DataLoader(test_set, batch_size, shuffle=False)
 
 
-model = Q_MLP((hidden_size, 10))
+model = Q_MLP((hidden_size, 10), np.array(3))
 optimizer = optimizers.SGD().setup(model)
 
 for epoch in range(max_epoch):

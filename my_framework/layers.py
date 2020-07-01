@@ -73,11 +73,12 @@ class Linear(Layer):
 
 
 class Q_Linear(Layer):
-  def __init__(self, out_size, nobias=True, dtype=np.float32, in_size=None):
+  def __init__(self, out_size, bit_size, nobias=True, dtype=np.float32, in_size=None):
     # input のサイズは指定しなくて良い
     super().__init__()
     self.in_size = in_size
     self.out_size = out_size
+    self.bit_size = bit_size
     self.dtype = dtype
 
     self.W = Parameter(None, name='W')
@@ -102,5 +103,5 @@ class Q_Linear(Layer):
       self.in_size = x.shape[1]
       self._init_W()
 
-    y = F.q_linear(x, self.W, self.b)
+    y = F.q_linear(x, self.W, self.bit_size, self.b)
     return y

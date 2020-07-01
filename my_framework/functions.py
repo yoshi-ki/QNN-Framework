@@ -239,7 +239,7 @@ def linear_simple(x, W, b=None):
 # 出力データと重みをquantizeすればいい
 # TODO: quantizeする
 class Q_Linear(Function):
-  def forward(self, x, W, b):
+  def forward(self, x, W, b, bit_size):
     # W = #quantize W
     # binarize用
     # y = x.dot(W)
@@ -259,7 +259,7 @@ class Q_Linear(Function):
     # y = np.clip(y, - 2 ** (bit_size - 1), 2 ** (bit_size - 1) - 1)
 
     # quantize用(論文実装)
-    bit_size = 2
+    # bit_size = 2
     self.bit_size = bit_size
     W_max = (W * np.sign(W)).max(axis=None, keepdims=True)
     self.W_max = W_max
@@ -276,7 +276,7 @@ class Q_Linear(Function):
     return y
 
   def backward(self, gy):
-    x, W, b = self.inputs
+    x, W, b, bit_size = self.inputs
     mask = (self.y_result >= - 2 ** (self.bit_size - 1)) * \
         (self.y_result <= 2 ** (self.bit_size - 1) - 1)
     gy = gy * mask * self.y_max
@@ -303,8 +303,8 @@ class Q_Linear(Function):
     return gx, gW, gb
 
 
-def q_linear(x, W, b=None):
-  return Q_Linear()(x, W, b)
+def q_linear(x, W, bit_size, b=None):
+  return Q_Linear()(x, W, b, bit_size)
 
 
 class Sigmoid(Function):

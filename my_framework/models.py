@@ -32,7 +32,7 @@ class MLP(Model):
 
 class Q_MLP(Model):
   # MLPは全結合NNの抽象クラス
-  def __init__(self, fc_output_sizes, activation=F.sigmoid):
+  def __init__(self, fc_output_sizes, bit_size, activation=F.sigmoid):
     super().__init__()
     self.activation = activation
     self.layers = []
@@ -43,7 +43,7 @@ class Q_MLP(Model):
         layer = L.Linear(out_size)
       else:
         # 入力を受け取って、計算を行ってquantizeを行う
-        layer = L.Q_Linear(out_size)
+        layer = L.Q_Linear(out_size, bit_size)
       setattr(self, 'l' + str(i), layer)
       self.layers.append(layer)
 
