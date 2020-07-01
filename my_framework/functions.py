@@ -307,6 +307,29 @@ def q_linear(x, W, bit_size, b=None):
   return Q_Linear()(x, W, b, bit_size)
 
 
+class B_Linear(Function):
+  def forward(self, x, W, b):
+    # binarize用
+    W = np.sign(W)
+    y = x.dot(W)
+    if b is not None:
+      y += b
+    y = np.sign(y)
+
+    return y
+
+  def backward(self, gy):
+    x, W, b = self.inputs
+    gb = None if b.data is None else sum_to(gy, b.shape)
+    gx = matmul(gy, W.T)
+    gW = matmul(x.T, gy)
+    return gx, gW, gb
+
+
+def b_linear(x, W, b=None):
+  return B_Linear()(x, W, b)
+
+
 class Sigmoid(Function):
   def forward(self, x):
     y = 1 / (1 + np.exp(-x))

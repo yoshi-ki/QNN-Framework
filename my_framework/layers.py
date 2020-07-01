@@ -105,3 +105,37 @@ class Q_Linear(Layer):
 
     y = F.q_linear(x, self.W, self.bit_size, self.b)
     return y
+
+
+class B_Linear(Layer):
+  def __init__(self, out_size, nobias=True, dtype=np.float32, in_size=None):
+    # input のサイズは指定しなくて良い
+    super().__init__()
+    self.in_size = in_size
+    self.out_size = out_size
+    self.dtype = dtype
+
+    self.W = Parameter(None, name='W')
+    if self.in_size is not None:
+      # input sizeが指定されているときは初期化するが
+      # input sizeが指定されていないときはforwardでsizeを決定する
+      self._init_W()
+
+    if nobias:
+      self.b = None
+    else:
+      self.b = Parameter(np.zeros(out_size, dtype=dtype), name='b')
+
+  def _init_W(self):
+    I, Ou = self.in_size, self.out_size
+    W_data = np.random.randn(I, Ou).astype(self.dtype) * np.sqrt(1 / I)
+    self.W.data = W_data
+
+  def forward(self, x):
+    # データを流すタイミングで重みの初期化を行う
+    if self.W.data is None:
+      self.in_size = x.shape[1]
+      self._init_W()
+
+    y = F.b_linear(x, self.W, self.b)
+    return y
