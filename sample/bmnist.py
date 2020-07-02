@@ -10,7 +10,7 @@ import my_framework.functions as F
 from my_framework.models import B_MLP
 import matplotlib.pyplot as plt
 
-max_epoch = 20
+max_epoch = 200
 batch_size = 100
 hidden_size = 1000
 
