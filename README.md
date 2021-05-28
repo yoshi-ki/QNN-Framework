@@ -13,7 +13,9 @@ https://docs.google.com/presentation/d/1r5oDGx8sBrcrgIFj2aoRqbAOuHBDsA3OB5Aea4aw
 Tutorial includes three files.
 
 mnist.py: Code for normal neural networks.
+
 qmnist.py: Code for quantized neural networks.
+
 bmnist.py: Code for binary neural networks.
 
 As you can see in the tutorial, quantized layer is implemented as "Q_Linear" in /myframework/layers.py. You can use this layer to implement your own quantized neural networks.
