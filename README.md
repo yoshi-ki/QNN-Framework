@@ -36,7 +36,7 @@ Results of binary neural network (1 bit).
 ![b1](Tutorial/result/bmnist_result_acc1.png)
 
 
-As you can see from the results, 4 bits is enough to maintain the accuracy. This is the same as the generally accepted limit (8 bits or 4 bits). It is also interesting to note that even binary (1-bit) neural network maintains accuracy. It is also interesting to note that when the number of bits is reduced, the network tends to overfit a little.
+As you can see from the result, the accuracy is maintained to some extent even after quantization. It is also interesting that even binary (1-bit) neural network maintains accuracy a little. However, when the number of bits is reduced, the network tends to overfit a little.
 
 
 
